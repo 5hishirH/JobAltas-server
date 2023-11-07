@@ -28,7 +28,6 @@ const handleMongoDB = async () => {
     const JobCollection = client.db("JobAtlasDB").collection("Jobs");
 
     app.get("/jobs", async (req, res) => {
-      console.log(req.query.email);
       let query = {};
       if (req.query?.email) {
         query = { email: req.query.email };
@@ -37,10 +36,35 @@ const handleMongoDB = async () => {
       res.send(result);
     });
 
+    app.get("/jobs/:id", async (req, res) => {
+      const id = req.params.id;
+      const query1 = { _id: new ObjectId(id) };
+      const result = await JobCollection.findOne(query1);
+      res.send(result);
+    });
+
     app.post("/jobs", async (req, res) => {
       const newJob = req.body;
       console.log(newJob);
       const result = await JobCollection.insertOne(newJob);
+      res.send(result);
+    });
+
+    app.put("/jobs/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updatedJobs = req.body;
+
+      const job = {
+        $set: updatedJobs
+      };
+
+      const result = await JobCollection.updateOne(
+        filter,
+        job,
+        options
+      );
       res.send(result);
     });
   } finally {
