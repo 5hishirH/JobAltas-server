@@ -28,8 +28,12 @@ const handleMongoDB = async () => {
     const JobCollection = client.db("JobAtlasDB").collection("Jobs");
 
     app.get("/jobs", async (req, res) => {
-      const cursor = JobCollection.find();
-      const result = await cursor.toArray();
+      console.log(req.query.email);
+      let query = {};
+      if (req.query?.email) {
+        query = { email: req.query.email };
+      }
+      const result = await JobCollection.find(query).toArray();
       res.send(result);
     });
 
