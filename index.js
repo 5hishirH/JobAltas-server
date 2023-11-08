@@ -57,14 +57,17 @@ const handleMongoDB = async () => {
       const updatedJobs = req.body;
 
       const job = {
-        $set: updatedJobs
+        $set: updatedJobs,
       };
 
-      const result = await JobCollection.updateOne(
-        filter,
-        job,
-        options
-      );
+      const result = await JobCollection.updateOne(filter, job, options);
+      res.send(result);
+    });
+
+    app.delete("/jobs/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await JobCollection.deleteOne(query);
       res.send(result);
     });
   } finally {
