@@ -26,6 +26,9 @@ app.get("/", (req, res) => {
 const handleMongoDB = async () => {
   try {
     const JobCollection = client.db("JobAtlasDB").collection("Jobs");
+    const ApplicationCollection = client
+      .db("JobAtlasDB")
+      .collection("Applications");
 
     app.get("/jobs", async (req, res) => {
       let query = {};
@@ -47,6 +50,64 @@ const handleMongoDB = async () => {
       const newJob = req.body;
       console.log(newJob);
       const result = await JobCollection.insertOne(newJob);
+      res.send(result);
+    });
+
+    app.get("/applications", async (req, res) => {
+      let query = {};
+      if (req.query?.jobId && req.query?.appliedMail) {
+        query = {
+          $and: [
+            { job_id: req.query.jobId },
+            { user_email: req.query.appliedMail },
+          ],
+        };
+
+        console.log(query);
+        const result = await ApplicationCollection.find(query).toArray();
+        console.log(result);
+        if (result.length > 0) {
+          res.send({
+            appData: result,
+            exist: true,
+          });
+        } else {
+          res.send({
+            appData: result,
+            exist: false,
+          });
+        }
+      } else if (req.query?.email) {
+        query = { user_email: req.query?.email};
+        const applications = await ApplicationCollection.find(query).toArray();
+        const jobID = applications.map((e) => e.job_id);
+        const objID = jobID.map(e => new ObjectId(e));
+        const result = await JobCollection.find({ _id : {$in: objID}}).toArray();
+        res.send(result);
+      }
+    });
+
+    app.post("/applications", async (req, res) => {
+      const newApplicant = req.body;
+      console.log(newApplicant);
+      const result = await ApplicationCollection.insertOne(newApplicant);
+      res.send(result);
+    });
+
+    app.patch("/jobs/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const theDocument = await JobCollection.findOne(filter);
+      let applyNo = parseInt(theDocument.applicantNumber);
+      applyNo = applyNo + 1;
+      applyNo = applyNo.toString();
+      console.log(applyNo);
+      const updateDoc = {
+        $set: {
+          applicantNumber: applyNo,
+        },
+      };
+      const result = await JobCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
 
