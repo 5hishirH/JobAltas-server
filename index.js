@@ -41,9 +41,14 @@ const handleMongoDB = async () => {
 
     app.get("/jobs/:id", async (req, res) => {
       const id = req.params.id;
-      const query1 = { _id: new ObjectId(id) };
-      const result = await JobCollection.findOne(query1);
-      res.send(result);
+      if(id.length === 16) {
+        const query1 = { _id: new ObjectId(id) };
+        const result = await JobCollection.findOne(query1);
+        res.send(result);
+      }
+      else {
+        console.log('Error');
+      }
     });
 
     app.post("/jobs", async (req, res) => {
