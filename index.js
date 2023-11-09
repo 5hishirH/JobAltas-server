@@ -85,6 +85,9 @@ const handleMongoDB = async () => {
         const result = await JobCollection.find({ _id : {$in: objID}}).toArray();
         res.send(result);
       }
+      else {
+        console.log('Faulty url');
+      }
     });
 
     app.post("/applications", async (req, res) => {
